@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:otp_verification/services/service.dart';
 
 class OtpScreen extends StatefulWidget {
   @override
@@ -7,6 +8,7 @@ class OtpScreen extends StatefulWidget {
 
 class _OtpScreenState extends State<OtpScreen> {
   final myController = TextEditingController();
+  otpService otp = otpService();
 
   @override
   void dispose() {
@@ -21,7 +23,7 @@ class _OtpScreenState extends State<OtpScreen> {
     return Scaffold(
       backgroundColor: Colors.grey[50],
       body: Padding(
-        padding: const EdgeInsets.fromLTRB(8.0, 100.0, 8.0, 0.0),
+        padding: const EdgeInsets.fromLTRB(8.0, 70.0, 8.0, 0.0),
         child: Center(
           child: Container(
             child: Column(
@@ -30,7 +32,7 @@ class _OtpScreenState extends State<OtpScreen> {
                 Text(
                   'OTP Verification',
                   style: TextStyle(
-                    fontSize: 30,
+                    fontSize: 25,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -76,6 +78,7 @@ class _OtpScreenState extends State<OtpScreen> {
                         contentPadding: EdgeInsets.symmetric(
                             vertical: 10.0, horizontal: 10.0),
                       ),
+                      autofocus: true,
                       keyboardType: TextInputType.number,
                     ),
                   ),
@@ -86,10 +89,19 @@ class _OtpScreenState extends State<OtpScreen> {
                     width: 300,
                     height: 45.0,
                     child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.pushReplacementNamed(
-                            context, '/otpValidation',
-                            arguments: {'phoneNo': myController.text});
+                      onPressed: () async {
+                        if (myController.text.length != 10) {
+                          otp.showAlertDialog(
+                              'The provided phone number is not valid.',
+                              context);
+                          setState(() {
+                            build(context);
+                          });
+                        } else {
+                          await otp.registerUser(myController.text, context);
+                          Navigator.pushReplacementNamed(
+                              context, '/otpValidation');
+                        }
                       },
                       child: Text(
                         'Send OTP',

@@ -5,9 +5,17 @@ class Home extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Container(
-        child: Text('Welcome'),
+    return Scaffold(
+      body: Center(
+        child: Container(
+          child: Text(
+            'Welcome',
+            style: TextStyle(
+                fontSize: 40,
+                fontWeight: FontWeight.bold,
+                color: Colors.orange),
+          ),
+        ),
       ),
     );
   }

@@ -1,5 +1,20 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:otp_verification/screens/otpFields.dart';
+import 'package:otp_verification/services/service.dart';
+
+class otpCredential {
+  static Map otpDigits = {
+    'one': '',
+    'two': '',
+    'three': '',
+    'four': '',
+    'five': '',
+    'six': '',
+  };
+  static String? code = '';
+  static String? verificationID;
+}
 
 class OtpValidation extends StatefulWidget {
   const OtpValidation({Key? key}) : super(key: key);
@@ -9,17 +24,17 @@ class OtpValidation extends StatefulWidget {
 }
 
 class _OtpValidationState extends State<OtpValidation> {
-  Map _data = {};
+  otpService otp = otpService();
+  FirebaseAuth _auth = FirebaseAuth.instance;
 
   @override
   Widget build(BuildContext context) {
     // Here _data contain the phone number
-    _data = ModalRoute.of(context)!.settings.arguments as Map;
     final screenHeight = MediaQuery.of(context).size.height;
     return Scaffold(
       backgroundColor: Colors.grey[50],
       body: Padding(
-        padding: const EdgeInsets.fromLTRB(8.0, 100.0, 8.0, 0.0),
+        padding: const EdgeInsets.fromLTRB(8.0, 70.0, 8.0, 0.0),
         child: Center(
           child: Container(
             child: Column(
@@ -28,13 +43,13 @@ class _OtpValidationState extends State<OtpValidation> {
                 Text(
                   'Enter Verification Code',
                   style: TextStyle(
-                    fontSize: 30,
+                    fontSize: 25,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 SizedBox(height: screenHeight * 0.07),
                 Icon(
-                  Icons.message,
+                  Icons.message_rounded,
                   size: 60.0,
                 ),
                 SizedBox(height: screenHeight * 0.07),
@@ -55,8 +70,40 @@ class _OtpValidationState extends State<OtpValidation> {
                     width: 300,
                     height: 45.0,
                     child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.pushReplacementNamed(context, '/homeScreen');
+                      onPressed: () async {
+                        int flag = 0;
+                        String temp = '';
+                        for (String key in otpCredential.otpDigits.keys) {
+                          if (otpCredential.otpDigits[key] == '') {
+                            flag = 1;
+                          }
+                          temp += otpCredential.otpDigits[key];
+                        }
+                        if (flag == 1) {
+                          otp.showAlertDialog('Invalid OTP', context);
+                          setState(() {
+                            build(context);
+                          });
+                        } else {
+                          otpCredential.code = temp;
+                          try {
+                            PhoneAuthCredential credential =
+                                PhoneAuthProvider.credential(
+                                    verificationId:
+                                        otpCredential.verificationID.toString(),
+                                    smsCode: otpCredential.code.toString());
+
+                            final authCredential =
+                                await _auth.signInWithCredential(credential);
+
+                            if (authCredential.user != null) {
+                              Navigator.pushReplacementNamed(
+                                  context, '/homeScreen');
+                            }
+                          } catch (e) {
+                            otp.showAlertDialog('Invalid OTP', context);
+                          }
+                        }
                       },
                       child: Text(
                         'Verify',
